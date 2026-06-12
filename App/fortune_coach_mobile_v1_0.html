@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fortune Coach v1.0</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07101f;
+      --panel: rgba(8, 18, 34, .76);
+      --panel-soft: rgba(255, 255, 255, .07);
+      --line: rgba(235, 213, 163, .18);
+      --gold: #e9c977;
+      --gold-2: #b99041;
+      --mint: #64d8c5;
+      --text: #f7f1e2;
+      --muted: rgba(247, 241, 226, .72);
+      --quiet: rgba(247, 241, 226, .52);
+      --danger: #ffb9aa;
+      --shadow: 0 20px 60px rgba(0, 0, 0, .35);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      min-height: 100%;
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(3, 8, 18, .12), rgba(3, 8, 18, .92) 54%, #08101d 100%),
+        url("assets/fortune-coach-v1-bg.png") top center / min(130vw, 720px) auto no-repeat,
+        radial-gradient(circle at 50% 0%, #19355f 0%, #08101d 58%, #050913 100%);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(100%, 440px);
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom));
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.is-active {
+      display: block;
+    }
+
+    .screen.is-active.detail-screen {
+      display: grid;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 2px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 2px;
+    }
+
+    .brand small {
+      color: var(--quiet);
+      font-size: 12px;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .ghost-button,
+    .icon-button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(255, 255, 255, .07);
+      backdrop-filter: blur(18px);
+    }
+
+    .ghost-button {
+      border-radius: 999px;
+      padding: 0 13px;
+      font-size: 13px;
+    }
+
+    .icon-button {
+      width: 42px;
+      border-radius: 50%;
+      font-size: 18px;
+    }
+
+    .setup {
+      min-height: calc(100vh - 40px);
+      min-height: calc(100svh - 40px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 18px;
+      padding-bottom: 8px;
+    }
+
+    .intro {
+      display: grid;
+      gap: 10px;
+      padding-top: min(26vh, 220px);
+    }
+
+    .intro h1 {
+      font-size: clamp(34px, 9vw, 44px);
+      line-height: .96;
+      text-wrap: balance;
+    }
+
+    .intro p {
+      max-width: 330px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .sheet,
+    .card,
+    .action-card,
+    .chat-panel,
+    .feedback-panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
+
+    .sheet {
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .field-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .birthday-grid {
+      display: grid;
+      grid-template-columns: 1.2fr .82fr .82fr;
+      gap: 8px;
+    }
+
+    .zodiac-display {
+      display: flex;
+      align-items: center;
+      min-height: 46px;
+      border: 1px solid rgba(233, 201, 119, .2);
+      border-radius: 8px;
+      color: var(--gold);
+      background: rgba(233, 201, 119, .08);
+      padding: 11px 12px;
+      font-weight: 700;
+    }
+
+    .zodiac-display.is-empty {
+      color: var(--quiet);
+      font-weight: 500;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .09);
+      outline: 0;
+      padding: 11px 12px;
+    }
+
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(233, 201, 119, .62);
+      box-shadow: 0 0 0 3px rgba(233, 201, 119, .12);
+    }
+
+    .primary,
+    .secondary {
+      min-height: 48px;
+      border-radius: 8px;
+      padding: 0 16px;
+      font-weight: 700;
+    }
+
+    .primary {
+      color: #171207;
+      background: linear-gradient(135deg, #f3d98c, #b98e3e);
+    }
+
+    .secondary {
+      color: var(--text);
+      border: 1px solid rgba(100, 216, 197, .36);
+      background: rgba(100, 216, 197, .13);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1.25fr .95fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .dashboard {
+      padding-top: 6px;
+    }
+
+    .detail-screen {
+      min-height: calc(100vh - 40px);
+      min-height: calc(100svh - 40px);
+      align-content: start;
+      gap: 16px;
+      padding-top: 6px;
+    }
+
+    .hero {
+      min-height: min(620px, calc(100svh - 12px));
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      padding-bottom: 16px;
+    }
+
+    .hero-main {
+      display: grid;
+      gap: 17px;
+      padding-top: min(24vh, 204px);
+    }
+
+    .keyword-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .eyebrow {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .keyword {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      font-size: clamp(42px, 13vw, 58px);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .today-line {
+      max-width: 340px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+      text-wrap: balance;
+    }
+
+    .score-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: center;
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .score-ring {
+      display: grid;
+      place-items: center;
+      width: 86px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      color: #1a1307;
+      background:
+        radial-gradient(circle at 50% 50%, #f6deb1 0 46%, transparent 47%),
+        conic-gradient(from -40deg, #f4d67c 0 78%, rgba(255, 255, 255, .16) 78% 100%);
+      font-size: 28px;
+      font-weight: 800;
+    }
+
+    .score-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .score-copy strong {
+      font-size: 17px;
+    }
+
+    .score-copy span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric {
+      display: grid;
+      gap: 5px;
+      min-height: 66px;
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+    }
+
+    .metric span {
+      color: var(--quiet);
+      font-size: 12px;
+    }
+
+    .stars {
+      color: var(--gold);
+      font-size: 15px;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    section {
+      margin-top: 14px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .section-title h2 {
+      font-size: 18px;
+    }
+
+    .section-title span {
+      color: var(--quiet);
+      font-size: 12px;
+    }
+
+    .action-card {
+      display: grid;
+      gap: 13px;
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .action-card h3 {
+      font-size: 20px;
+    }
+
+    .action-card p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .task {
+      display: grid;
+      gap: 7px;
+      border-left: 3px solid var(--mint);
+      padding-left: 11px;
+    }
+
+    .task strong {
+      color: var(--mint);
+      font-size: 13px;
+    }
+
+    .avoid {
+      color: var(--danger);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .tarot-card {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 13px;
+      align-items: center;
+      border-radius: 8px;
+      padding: 14px;
+      border: 1px solid rgba(233, 201, 119, .18);
+      background: rgba(12, 25, 45, .76);
+    }
+
+    .tarot-card.is-large {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+      padding: 18px;
+    }
+
+    .tarot-visual {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      aspect-ratio: .68;
+      border: 1px solid rgba(233, 201, 119, .45);
+      border-radius: 8px;
+      color: var(--gold);
+      background:
+        linear-gradient(145deg, rgba(233, 201, 119, .2), rgba(100, 216, 197, .08)),
+        #0b1628;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 26px;
+    }
+
+    img.tarot-visual {
+      object-fit: cover;
+      padding: 0;
+    }
+
+    .tarot-card.is-large .tarot-visual {
+      width: min(46vw, 168px);
+      font-size: 42px;
+    }
+
+    .tarot-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .tarot-copy strong {
+      font-size: 16px;
+    }
+
+    .tarot-copy span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chat-panel,
+    .feedback-panel {
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .prompt-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .prompt-chip {
+      min-height: 42px;
+      border-radius: 8px;
+      color: var(--text);
+      text-align: left;
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .1);
+      padding: 10px 12px;
+    }
+
+    .chat-box {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .coach-reply {
+      border-left: 3px solid var(--gold);
+      color: var(--muted);
+      background: rgba(233, 201, 119, .08);
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.65;
+    }
+
+    .feedback-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .feedback-options button {
+      min-height: 44px;
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .08);
+      border: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .footer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 18px 0 6px;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(16px + env(safe-area-inset-bottom));
+      z-index: 10;
+      width: min(calc(100% - 36px), 380px);
+      transform: translate(-50%, 120%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(8, 18, 34, .94);
+      box-shadow: var(--shadow);
+      padding: 12px 14px;
+      opacity: 0;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+
+    .toast.is-visible {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    @media (max-width: 360px) {
+      .app { padding-left: 14px; padding-right: 14px; }
+      h1 { font-size: 27px; }
+      .birthday-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .footer-actions { grid-template-columns: 1fr; }
+      .score-ring { width: 78px; }
+      .tarot-card { grid-template-columns: 60px 1fr; }
+      .tarot-visual { width: 60px; }
+      .feedback-options { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div id="setupScreen" class="screen">
+      <div class="setup">
+        <div class="intro">
+          <div class="brand">
+            <small>AI 運勢管家</small>
+            <h1>Fortune Coach</h1>
+          </div>
+          <p>每天 30 秒，把今天的運勢變成一個可以執行的行動。</p>
+        </div>
+
+        <form id="profileForm" class="sheet">
+          <div class="field-grid">
+            <label>
+              生日
+              <div class="birthday-grid" aria-label="生日">
+                <input id="birthYearInput" type="text" inputmode="numeric" maxlength="4" placeholder="西元年" autocomplete="bday-year" required>
+                <input id="birthMonthInput" type="text" inputmode="numeric" maxlength="2" placeholder="月" autocomplete="bday-month" required>
+                <input id="birthDayInput" type="text" inputmode="numeric" maxlength="2" placeholder="日" autocomplete="bday-day" required>
+              </div>
+            </label>
+            <label>
+              星座
+              <div id="zodiacDisplay" class="zodiac-display is-empty">輸入生日後自動顯示</div>
+            </label>
+            <label>
+              最近最關注
+              <select id="topicInput" required>
+                <option>工作</option>
+                <option>感情</option>
+                <option>財運</option>
+                <option>健康</option>
+                <option>人際</option>
+                <option>自我成長</option>
+              </select>
+            </label>
+            <label>
+              最近想問命運的事
+              <textarea id="questionInput" placeholder="例如：最近適合談加薪嗎？"></textarea>
+            </label>
+          </div>
+          <div class="button-row">
+            <button class="primary" type="submit">開始今日運勢</button>
+            <button class="secondary" type="button" id="sampleButton">先看範例</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="dashboardScreen" class="screen dashboard">
+      <div class="hero">
+        <div class="brand-row">
+          <div class="brand">
+            <small id="profileLabel">今日運勢</small>
+            <h1>Fortune Coach</h1>
+          </div>
+          <button class="ghost-button" type="button" id="resetTopButton">重填</button>
+        </div>
+
+        <div class="hero-main">
+          <div class="keyword-block">
+            <div class="eyebrow">今日關鍵字</div>
+            <div id="keywordText" class="keyword">先觀察</div>
+          </div>
+          <p id="todayLine" class="today-line">今天不一定適合硬碰硬。先聽完對方的意思，你會更容易找到突破口。</p>
+
+          <div class="card score-card">
+            <div id="scoreRing" class="score-ring">78</div>
+            <div class="score-copy">
+              <strong>今日運勢</strong>
+              <span id="scoreNote">節奏不慢，但適合多看一眼再行動。</span>
+            </div>
+          </div>
+
+          <div class="metric-grid" aria-label="今日分項運勢">
+            <div class="metric"><span>工作</span><div id="workStars" class="stars">★★★★☆</div></div>
+            <div class="metric"><span>感情</span><div id="loveStars" class="stars">★★★☆☆</div></div>
+            <div class="metric"><span>財運</span><div id="moneyStars" class="stars">★★★★☆</div></div>
+            <div class="metric"><span>狀態</span><div id="energyStars" class="stars">★★★☆☆</div></div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="primary" type="button" id="askCoachButton">問 AI 命理師</button>
+          <button class="secondary" type="button" id="drawTarotButton">抽今日塔羅</button>
+        </div>
+      </div>
+
+      <section id="dailyAction">
+        <div class="section-title">
+          <h2>今日行動建議</h2>
+          <span id="actionTopic">工作</span>
+        </div>
+        <article class="action-card">
+          <h3 id="actionTitle">先觀察，再出手</h3>
+          <p id="actionAdvice">今天不一定適合硬碰硬。先聽完對方的意思，你會更容易找到突破口。</p>
+          <div class="task">
+            <strong>今天先做這件事</strong>
+            <p id="actionTask">重要訊息晚 30 分鐘再回。</p>
+          </div>
+          <div id="actionAvoid" class="avoid">避免在情緒上來時立刻做決定。</div>
+        </article>
+      </section>
+
+      <section id="feedbackSection">
+        <div class="section-title">
+          <h2>晚間運勢驗證</h2>
+          <span>今天準嗎</span>
+        </div>
+        <div class="feedback-panel">
+          <p class="today-line">晚上回來時，幫今天留下一個感覺。明天的建議會更貼近你。</p>
+          <div class="feedback-options">
+            <button type="button" data-feedback="很準">很準</button>
+            <button type="button" data-feedback="有一點">有一點</button>
+            <button type="button" data-feedback="不太像">不太像</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer-actions">
+        <button class="secondary" type="button" id="resetBottomButton">清除資料</button>
+        <button class="primary" type="button" id="topButton">回到今日首頁</button>
+      </div>
+    </div>
+
+    <div id="tarotScreen" class="screen detail-screen">
+      <div class="brand-row">
+        <div class="brand">
+          <small>每日塔羅</small>
+          <h1>今日一張牌</h1>
+        </div>
+        <button class="ghost-button" type="button" data-back-home>返回</button>
+      </div>
+
+      <div class="tarot-card is-large">
+        <img id="tarotPageVisual" class="tarot-visual" src="assets/tarot/major-17-the-star.svg" alt="星星塔羅牌">
+        <div class="tarot-copy">
+          <strong id="tarotPageName">星星</strong>
+          <span id="tarotPageMeaning">今天適合保留希望，但把步伐放小。先讓一件事慢慢回到正軌。</span>
+        </div>
+      </div>
+
+      <article class="action-card">
+        <div class="eyebrow">這張牌提醒你</div>
+        <h3 id="tarotPageTitle">先讓事情回到正軌</h3>
+        <p id="tarotPageAdvice">今天不需要一次解決全部。先挑一件最卡的小事，把它往前推一點點。</p>
+        <button class="primary" type="button" data-back-home>回到今日首頁</button>
+      </article>
+    </div>
+
+    <div id="coachScreen" class="screen detail-screen">
+      <div class="brand-row">
+        <div class="brand">
+          <small>AI 私人命理師</small>
+          <h1>今天可以問我</h1>
+        </div>
+        <button class="ghost-button" type="button" data-back-home>返回</button>
+      </div>
+
+      <div class="chat-panel">
+        <p id="coachPageLead" class="today-line">如果你正在猶豫，可以先問一個具體問題。</p>
+        <div class="prompt-list">
+          <button class="prompt-chip" type="button">今天適合談加薪嗎？</button>
+          <button class="prompt-chip" type="button">這個人今天適合聯絡嗎？</button>
+          <button class="prompt-chip" type="button">我最近工作很煩，今天要注意什麼？</button>
+        </div>
+        <div class="chat-box">
+          <textarea id="coachQuestionInput" placeholder="把你今天想問的事寫在這裡"></textarea>
+          <button class="primary" type="button" id="coachSendButton">請 Fortune Coach 看看</button>
+          <div id="coachReply" class="coach-reply">先把問題縮小成今天能做的一步，答案通常會清楚很多。</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/data/tarot_cards_v1_0.js"></script>
+  <script>
+    const actions = {
+      "工作": {
+        keyword: "先觀察",
+        title: "先觀察，再出手",
+        shortAdvice: "今天不一定適合硬碰硬。先聽完對方的意思，你會更容易找到突破口。",
+        task: "重要訊息晚 30 分鐘再回。",
+        avoid: "避免在情緒上來時立刻做決定。",
+        question: "要不要我幫你看今天適不適合談這件事？"
+      },
+      "感情": {
+        keyword: "放軟",
+        title: "話可以慢一點說",
+        shortAdvice: "今天容易把小事聽得比較重。先確認對方的意思，再決定要不要往心裡去。",
+        task: "回訊息前，刪掉一句最尖銳的話。",
+        avoid: "不要用試探的方式確認對方在不在乎你。",
+        question: "你想問我今天適不適合聯絡某個人嗎？"
+      },
+      "財運": {
+        keyword: "盤點",
+        title: "先看清楚錢流去哪裡",
+        shortAdvice: "今天適合整理帳單、訂閱和小額支出。財運不是只有進帳，也包含少漏一點。",
+        task: "檢查一個自動扣款或訂閱。",
+        avoid: "避免因為心情不好而衝動購物。",
+        question: "要不要我幫你看今天適不適合做某個金錢決定？"
+      },
+      "健康": {
+        keyword: "放慢",
+        title: "先把身體放回來",
+        shortAdvice: "今天不一定要逼自己很有效率。先讓身體穩下來，後面的事才會比較順。",
+        task: "喝一杯水，走路 10 分鐘。",
+        avoid: "不要用咖啡硬撐整天。",
+        question: "你想問我今天適合衝刺還是休息嗎？"
+      },
+      "人際": {
+        keyword: "貴人",
+        title: "主動聯絡一個人",
+        shortAdvice: "今天適合打開一個人際連結。不是求人，而是讓關係重新流動。",
+        task: "傳一則簡短訊息給一位你信任的人。",
+        avoid: "不要把所有事情都自己扛。",
+        question: "你想問我今天適合聯絡誰嗎？"
+      },
+      "自我成長": {
+        keyword: "校準",
+        title: "把方向調回來",
+        shortAdvice: "今天適合停一下，問自己最近是不是走太快，卻忘了為什麼出發。",
+        task: "寫下今天最想保留的一件事，和最想放下的一件事。",
+        avoid: "不要拿別人的進度懲罰自己。",
+        question: "你想問我現在該堅持還是轉彎嗎？"
+      }
+    };
+
+    const tarotDeck = window.FORTUNE_COACH_TAROT || [];
+
+    const screens = {
+      setup: document.querySelector("#setupScreen"),
+      dashboard: document.querySelector("#dashboardScreen"),
+      tarot: document.querySelector("#tarotScreen"),
+      coach: document.querySelector("#coachScreen")
+    };
+
+    const form = document.querySelector("#profileForm");
+    const birthYearInput = document.querySelector("#birthYearInput");
+    const birthMonthInput = document.querySelector("#birthMonthInput");
+    const birthDayInput = document.querySelector("#birthDayInput");
+    const zodiacDisplay = document.querySelector("#zodiacDisplay");
+    const topicInput = document.querySelector("#topicInput");
+    const questionInput = document.querySelector("#questionInput");
+    const coachQuestionInput = document.querySelector("#coachQuestionInput");
+    const toast = document.querySelector("#toast");
+    let toastTimer;
+    let currentProfile;
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2400);
+    }
+
+    function showScreen(name) {
+      Object.values(screens).forEach(screen => screen.classList.remove("is-active"));
+      screens[name].classList.add("is-active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function digitsOnly(input) {
+      input.value = input.value.replace(/\D/g, "");
+    }
+
+    function clampNumberInput(input, min, max) {
+      if (!input.value) return;
+      const value = Number(input.value);
+      if (!Number.isFinite(value)) {
+        input.value = "";
+        return;
+      }
+      if (value < min) input.value = String(min);
+      if (value > max) input.value = String(max);
+    }
+
+    function pad2(value) {
+      return String(value).padStart(2, "0");
+    }
+
+    function getBirthdayParts() {
+      return {
+        year: birthYearInput.value.trim(),
+        month: birthMonthInput.value.trim(),
+        day: birthDayInput.value.trim()
+      };
+    }
+
+    function getZodiac(month, day) {
+      const dateCode = Number(`${pad2(month)}${pad2(day)}`);
+      if (dateCode >= 321 && dateCode <= 419) return "牡羊座";
+      if (dateCode >= 420 && dateCode <= 520) return "金牛座";
+      if (dateCode >= 521 && dateCode <= 621) return "雙子座";
+      if (dateCode >= 622 && dateCode <= 722) return "巨蟹座";
+      if (dateCode >= 723 && dateCode <= 822) return "獅子座";
+      if (dateCode >= 823 && dateCode <= 922) return "處女座";
+      if (dateCode >= 923 && dateCode <= 1023) return "天秤座";
+      if (dateCode >= 1024 && dateCode <= 1122) return "天蠍座";
+      if (dateCode >= 1123 && dateCode <= 1221) return "射手座";
+      if (dateCode >= 1222 || dateCode <= 119) return "摩羯座";
+      if (dateCode >= 120 && dateCode <= 218) return "水瓶座";
+      return "雙魚座";
+    }
+
+    function isValidBirthday(year, month, day) {
+      const y = Number(year);
+      const m = Number(month);
+      const d = Number(day);
+      if (!y || y < 1900 || y > 2100 || !m || m < 1 || m > 12 || !d || d < 1 || d > 31) return false;
+      const date = new Date(y, m - 1, d);
+      return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+    }
+
+    function updateZodiacDisplay() {
+      const { year, month, day } = getBirthdayParts();
+      if (!month || !day || Number(month) < 1 || Number(month) > 12 || Number(day) < 1 || Number(day) > 31) {
+        zodiacDisplay.textContent = "輸入生日後自動顯示";
+        zodiacDisplay.classList.add("is-empty");
+        return "";
+      }
+      const zodiac = getZodiac(Number(month), Number(day));
+      zodiacDisplay.textContent = zodiac;
+      zodiacDisplay.classList.remove("is-empty");
+      if (year && !isValidBirthday(year, month, day)) {
+        zodiacDisplay.textContent = "請確認生日日期";
+        zodiacDisplay.classList.add("is-empty");
+        return "";
+      }
+      return zodiac;
+    }
+
+    function bindBirthdayInput(input, maxLength, nextInput, range) {
+      input.addEventListener("input", () => {
+        digitsOnly(input);
+        if (range && input.value.length >= maxLength) {
+          clampNumberInput(input, range.min, range.max);
+        }
+        if (input.value.length >= maxLength && nextInput) nextInput.focus();
+        updateZodiacDisplay();
+      });
+      input.addEventListener("blur", () => {
+        digitsOnly(input);
+        if (range) clampNumberInput(input, range.min, range.max);
+        updateZodiacDisplay();
+      });
+    }
+
+    function stars(count) {
+      return "★★★★★".slice(0, count) + "☆☆☆☆☆".slice(0, 5 - count);
+    }
+
+    function profileSeed(profile) {
+      const raw = `${profile.birthday}${profile.zodiac}${profile.topic}`;
+      return raw.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    }
+
+    function renderDashboard(profile) {
+      const action = actions[profile.topic] || actions["工作"];
+      const seed = profileSeed(profile);
+      const score = 72 + (seed % 13);
+      const tarot = tarotDeck[seed % tarotDeck.length] || {
+        name_zh: "星星",
+        keyword: "保留希望",
+        daily_message: "今天適合保留希望，但把步伐放小，先讓一件事回到正軌。",
+        action_hint: "做一件會讓你恢復信心的小事。",
+        caution: "避免把還沒發生的擔心當成結果。",
+        image: "assets/tarot/major-17-the-star.svg"
+      };
+      const work = 3 + (seed % 2);
+      const love = 3 + ((seed + 1) % 2);
+      const money = 3 + ((seed + 2) % 3);
+      const energy = 3 + ((seed + 3) % 2);
+
+      document.querySelector("#profileLabel").textContent = `${profile.zodiac || "今日"} · ${profile.topic}`;
+      document.querySelector("#keywordText").textContent = action.keyword;
+      document.querySelector("#todayLine").textContent = action.shortAdvice;
+      document.querySelector("#scoreRing").textContent = score;
+      document.querySelector("#scoreNote").textContent = "節奏不慢，但適合多看一眼再行動。";
+      document.querySelector("#workStars").textContent = stars(work);
+      document.querySelector("#loveStars").textContent = stars(love);
+      document.querySelector("#moneyStars").textContent = stars(Math.min(money, 5));
+      document.querySelector("#energyStars").textContent = stars(energy);
+      document.querySelector("#actionTopic").textContent = profile.topic;
+      document.querySelector("#actionTitle").textContent = action.title;
+      document.querySelector("#actionAdvice").textContent = action.shortAdvice;
+      document.querySelector("#actionTask").textContent = action.task;
+      document.querySelector("#actionAvoid").textContent = action.avoid;
+      document.querySelector("#coachPageLead").textContent = profile.question || action.question;
+      document.querySelector("#tarotPageVisual").src = tarot.image;
+      document.querySelector("#tarotPageVisual").alt = `${tarot.name_zh}塔羅牌`;
+      document.querySelector("#tarotPageName").textContent = tarot.name_zh;
+      document.querySelector("#tarotPageMeaning").textContent = tarot.daily_message;
+      document.querySelector("#tarotPageTitle").textContent = `${tarot.name_zh}：${tarot.keyword}`;
+      document.querySelector("#tarotPageAdvice").textContent = `${tarot.action_hint} ${tarot.caution}`;
+      coachQuestionInput.value = profile.question || "";
+    }
+
+    function saveAndRender(profile) {
+      currentProfile = profile;
+      localStorage.setItem("fortuneCoachProfileV1", JSON.stringify(profile));
+      renderDashboard(profile);
+      showScreen("dashboard");
+    }
+
+    function getProfileFromForm() {
+      const { year, month, day } = getBirthdayParts();
+      const zodiac = updateZodiacDisplay();
+      return {
+        birthday: `${year}-${pad2(month)}-${pad2(day)}`,
+        zodiac,
+        topic: topicInput.value,
+        question: questionInput.value.trim()
+      };
+    }
+
+    function loadStoredProfile() {
+      try {
+        return JSON.parse(localStorage.getItem("fortuneCoachProfileV1"));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const { year, month, day } = getBirthdayParts();
+      if (!isValidBirthday(year, month, day)) {
+        showToast("請先確認生日年月日。");
+        return;
+      }
+      saveAndRender(getProfileFromForm());
+    });
+
+    document.querySelector("#sampleButton").addEventListener("click", () => {
+      birthYearInput.value = "1992";
+      birthMonthInput.value = "10";
+      birthDayInput.value = "12";
+      updateZodiacDisplay();
+      saveAndRender({
+        birthday: "1992-10-12",
+        zodiac: "天秤座",
+        topic: "工作",
+        question: "最近適合談加薪嗎？"
+      });
+    });
+
+    function resetProfile() {
+      localStorage.removeItem("fortuneCoachProfileV1");
+      form.reset();
+      topicInput.value = "工作";
+      updateZodiacDisplay();
+      showScreen("setup");
+      showToast("已清除，重新看今天的方向。");
+    }
+
+    bindBirthdayInput(birthYearInput, 4, birthMonthInput);
+    bindBirthdayInput(birthMonthInput, 2, birthDayInput, { min: 1, max: 12 });
+    bindBirthdayInput(birthDayInput, 2, null, { min: 1, max: 31 });
+    document.querySelector("#resetTopButton").addEventListener("click", resetProfile);
+    document.querySelector("#resetBottomButton").addEventListener("click", resetProfile);
+    document.querySelector("#topButton").addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    document.querySelector("#askCoachButton").addEventListener("click", () => {
+      showScreen("coach");
+    });
+    document.querySelector("#drawTarotButton").addEventListener("click", () => {
+      showScreen("tarot");
+    });
+    document.querySelectorAll("[data-back-home]").forEach(button => {
+      button.addEventListener("click", () => showScreen("dashboard"));
+    });
+
+    document.querySelectorAll(".prompt-chip").forEach(button => {
+      button.addEventListener("click", () => {
+        coachQuestionInput.value = button.textContent;
+        showToast("已帶入問題，可以再補一句背景。");
+      });
+    });
+
+    document.querySelector("#coachSendButton").addEventListener("click", () => {
+      const action = actions[currentProfile?.topic] || actions["工作"];
+      const question = coachQuestionInput.value.trim();
+      document.querySelector("#coachReply").textContent = question
+        ? `先把「${question}」放到今天的節奏裡看：你可以先做一個低風險的小動作，不急著把答案一次定下來。${action.task}`
+        : action.question;
+    });
+
+    document.querySelectorAll("[data-feedback]").forEach(button => {
+      button.addEventListener("click", () => {
+        localStorage.setItem("fortuneCoachFeedbackV1", button.dataset.feedback);
+        showToast(`已記下：${button.dataset.feedback}`);
+      });
+    });
+
+    const storedProfile = loadStoredProfile();
+    if (storedProfile && storedProfile.birthday && storedProfile.zodiac && storedProfile.topic) {
+      currentProfile = storedProfile;
+      renderDashboard(storedProfile);
+      showScreen("dashboard");
+    } else {
+      updateZodiacDisplay();
+      showScreen("setup");
+    }
+  </script>
+</body>
+</html>
